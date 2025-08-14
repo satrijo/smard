@@ -364,42 +364,6 @@ onUnmounted(() => {
     <Header />
 
     <main class="container mx-auto px-4 sm:px-6 py-8">
-      <!-- Real-time Status Bar -->
-      <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2">
-              <div class="w-3 h-3 rounded-full" :class="{
-                'bg-green-500 animate-pulse': realTimeState.autoRefresh,
-                'bg-gray-400': !realTimeState.autoRefresh
-              }"></div>
-              <span class="text-sm font-medium">
-                {{ realTimeState.autoRefresh ? '🔄 Real-time Aktif' : '⏸️ Real-time Nonaktif' }}
-              </span>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="w-3 h-3 rounded-full" :class="{
-                'bg-green-500': realTimeState.connectionStatus === 'online',
-                'bg-red-500': realTimeState.connectionStatus === 'error',
-                'bg-yellow-500': realTimeState.connectionStatus === 'offline'
-              }"></div>
-              <span class="text-sm">
-                {{ realTimeState.connectionStatus === 'online' ? '🌐 Terhubung' : 
-                   realTimeState.connectionStatus === 'error' ? '❌ Error' : '📡 Offline' }}
-              </span>
-            </div>
-            <div v-if="realTimeState.autoRefresh && realTimeState.isPolling" class="text-sm text-blue-600">
-              ⏱️ Refresh dalam {{ realTimeState.nextRefreshCountdown }}s
-            </div>
-          </div>
-          <div class="flex items-center gap-2 text-sm text-muted-foreground">
-            <span v-if="realTimeState.lastUpdate">
-              📅 Update: {{ new Date(realTimeState.lastUpdate).toLocaleTimeString('id-ID') }}
-            </span>
-          </div>
-        </div>
-      </div>
-      
       <!-- Layout 2 Kolom -->
       <div class="grid grid-cols-12 gap-6">
         <!-- Kolom Kiri - Form Pembuatan Peringatan -->
@@ -454,12 +418,12 @@ onUnmounted(() => {
                   <div class="text-gray-600">Total</div>
                 </div>
               </div>
-              <!-- Last Update Info -->
-              <div v-if="realTimeState.lastUpdate" class="mt-3 pt-2 border-t border-border">
-                <div class="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Update terakhir:</span>
-                  <span>{{ new Date(realTimeState.lastUpdate).toLocaleTimeString('id-ID') }}</span>
-                </div>
+                             <!-- Last Update Info -->
+               <div v-if="realTimeState.lastUpdate" class="mt-3 pt-2 border-t border-border">
+                 <div class="flex items-center justify-between text-xs text-muted-foreground">
+                   <span>Update terakhir:</span>
+                   <span>{{ new Date(realTimeState.lastUpdate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' }) }} UTC</span>
+                 </div>
                 <div class="flex items-center gap-1 text-xs text-muted-foreground">
                   <div class="w-2 h-2 rounded-full" :class="{
                     'bg-green-500 animate-pulse': realTimeState.autoRefresh,

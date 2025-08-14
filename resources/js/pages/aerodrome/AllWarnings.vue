@@ -14,7 +14,16 @@ const props = defineProps({
   warnings: Object,
   filters: Object,
   statistics: Object,
-  filterOptions: Object
+  filterOptions: Object,
+  selectedPegawai: {
+    type: Object,
+    default: () => ({
+      id: 1,
+      nama_lengkap: 'John Doe',
+      position: 'Meteorologist',
+      department: 'Meteorology'
+    })
+  }
 })
 
 // Reactive filters

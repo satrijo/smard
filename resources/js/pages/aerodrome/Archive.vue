@@ -7,6 +7,15 @@ const props = defineProps({
   warnings: {
     type: Array,
     default: () => []
+  },
+  selectedPegawai: {
+    type: Object,
+    default: () => ({
+      id: 1,
+      nama_lengkap: 'John Doe',
+      position: 'Meteorologist',
+      department: 'Meteorology'
+    })
   }
 })
 
