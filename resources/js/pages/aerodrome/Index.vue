@@ -251,6 +251,19 @@ const confirmCancellation = async (id) => {
   try {
     showToast("Memproses Pembatalan", "Sedang memproses pembatalan peringatan...", 'info');
     
+    // Ambil data forecaster yang sedang aktif dari localStorage
+    const activeForecaster = localStorage.getItem('selectedForecaster');
+    let forecasterData = {};
+    
+    if (activeForecaster) {
+      const forecaster = JSON.parse(activeForecaster);
+      forecasterData = {
+        forecaster_id: forecaster.id,
+        forecaster_name: forecaster.name,
+        forecaster_nip: forecaster.nip
+      };
+    }
+    
     const response = await fetch(`/aerodrome/warnings/${id}/cancel`, {
       method: 'POST',
       headers: {
@@ -259,6 +272,7 @@ const confirmCancellation = async (id) => {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
         'X-Requested-With': 'XMLHttpRequest'
       },
+      body: JSON.stringify(forecasterData),
       credentials: 'same-origin'
     });
 

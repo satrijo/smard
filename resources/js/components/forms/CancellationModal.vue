@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, watch, onMounted, onUnmounted } from 'vue';
+import { computed, reactive, watch, onMounted, onUnmounted, ref } from 'vue';
 import { AlertTriangle, Copy } from 'lucide-vue-next';
 
 // Import komponen UI yang tersedia
@@ -23,6 +23,9 @@ const props = defineProps({
 // Ini menggantikan callback function props (onClose, onConfirm) dari React.
 const emit = defineEmits(['close', 'confirm']);
 
+// State untuk forecaster yang sedang aktif
+const activeForecaster = ref(null);
+
 // State untuk notifikasi toast sederhana
 const toast = reactive({
   show: false,
@@ -39,6 +42,14 @@ const showToast = (title, description) => {
   toast.timeoutId = setTimeout(() => {
     toast.show = false;
   }, 3000);
+};
+
+// Fungsi untuk mengambil forecaster aktif dari localStorage
+const getActiveForecaster = () => {
+  const savedForecaster = localStorage.getItem('selectedForecaster');
+  if (savedForecaster) {
+    activeForecaster.value = JSON.parse(savedForecaster);
+  }
 };
 
 // 3. Menggunakan `computed` untuk nilai yang diturunkan dari props.
@@ -170,9 +181,14 @@ const handleKeydown = (event) => {
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
     document.addEventListener('keydown', handleKeydown);
+    getActiveForecaster(); // Ambil forecaster aktif saat modal dibuka
   } else {
     document.removeEventListener('keydown', handleKeydown);
   }
+});
+
+onMounted(() => {
+  getActiveForecaster(); // Ambil forecaster aktif saat komponen dimount
 });
 
 onUnmounted(() => {
@@ -213,10 +229,22 @@ onUnmounted(() => {
             Anda akan membatalkan <strong>Peringatan No: {{ warningRecord.warningNumber }}</strong> untuk
             <strong>{{ warningRecord.airportCode }}</strong>.
           </p>
-          <!-- Informasi forecaster -->
+          <!-- Informasi forecaster yang membuat peringatan asli -->
           <div v-if="warningRecord.forecaster_name" class="mt-2 pt-2 border-t border-border/50">
+            <p class="text-sm text-muted-foreground">
+              <span class="font-medium">Dibuat oleh:</span> {{ warningRecord.forecaster_name }} ({{ warningRecord.forecaster_nip }})
+            </p>
+          </div>
+          <!-- Informasi forecaster yang sedang melakukan pembatalan -->
+          <div v-if="activeForecaster" class="mt-2 pt-2 border-t border-border/50">
             <p class="text-sm text-blue-600">
-              <span class="font-medium">Forecaster:</span> {{ warningRecord.forecaster_name }} ({{ warningRecord.forecaster_nip }})
+              <span class="font-medium">Pembatalan oleh:</span> {{ activeForecaster.name }} ({{ activeForecaster.nip }})
+            </p>
+          </div>
+          <!-- Peringatan jika forecaster belum dipilih -->
+          <div v-else class="mt-2 pt-2 border-t border-border/50">
+            <p class="text-sm text-red-600">
+              <span class="font-medium">⚠️ Peringatan:</span> Forecaster belum dipilih. Silakan pilih forecaster terlebih dahulu.
             </p>
           </div>
         </div>
