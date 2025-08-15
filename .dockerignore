@@ -40,7 +40,6 @@ Dockerfile
 deploy.sh
 update.sh
 update.ps1
-update_forecasters.php
 
 # OS files
 .DS_Store
