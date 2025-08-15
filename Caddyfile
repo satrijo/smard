@@ -1,33 +1,19 @@
-192.168.10.54:80 {
-    # Enable gzip compression
-    encode gzip
+192.168.10.54 {
+    root * /var/www/public
 
-    # Serve static files directly
-    @static {
-        file
-        path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot
-    }
-    handle @static {
-        root * /var/www/public
-        file_server
-    }
+    # Aktifkan kompresi
+    encode zstd gzip
 
-    # Handle PHP files
-    @php {
-        path *.php
-    }
-    handle @php {
-        reverse_proxy app:9000
-    }
+    # Prioritaskan penyajian file statis yang ada (CSS, JS, gambar)
+    file_server
 
-    # Handle all other requests (Laravel routes)
-    handle {
-        reverse_proxy app:9000
+    # Arahkan semua request lainnya ke index.php
+    # Ini adalah kunci untuk "pretty URLs" di Laravel
+    @notfound {
+        not file
     }
+    rewrite @notfound /index.php?{query}
 
-    # Log configuration
-    log {
-        output file /var/log/caddy/access.log
-        format json
-    }
+    # Proses file PHP dengan FPM
+    php_fastcgi app:9000
 }
