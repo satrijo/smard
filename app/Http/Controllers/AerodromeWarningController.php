@@ -180,6 +180,17 @@ class AerodromeWarningController extends Controller
             $cancellationMessage = $warning->generateCancellationMessage($cancellationSequenceNumber);
             $cancellationTranslation = $warning->generateCancellationTranslation($cancellationSequenceNumber);
             
+            // Gunakan pesan yang diedit jika ada
+            $editedMessage = request()->input('edited_message');
+            $editedTranslation = request()->input('edited_translation');
+            
+            if ($editedMessage) {
+                $cancellationMessage = $editedMessage;
+            }
+            if ($editedTranslation) {
+                $cancellationTranslation = $editedTranslation;
+            }
+            
             // Ambil data forecaster yang sedang melakukan pembatalan dari request
             $cancellingForecasterId = request()->input('forecaster_id', $warning->forecaster_id);
             $cancellingForecasterName = request()->input('forecaster_name', $warning->forecaster_name);

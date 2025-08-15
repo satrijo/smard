@@ -85,6 +85,7 @@ const previewMessage = ref("");
 const translationMessage = ref(""); // Tambahkan ref untuk terjemahan
 const isDraftCreated = ref(false);
 const previewTextareaRef = ref(null); // Add ref for textarea
+const translationTextareaRef = ref(null); // Add ref for translation textarea
 
 // State untuk forecaster yang dipilih
 const selectedForecaster = ref(null);
@@ -530,6 +531,10 @@ const generatePreview = () => {
       previewTextareaRef.value.focus();
       previewTextareaRef.value.select();
     }
+    // Also focus on translation textarea if available
+    if (translationTextareaRef.value) {
+      translationTextareaRef.value.focus();
+    }
   }, 100);
 };
 
@@ -547,6 +552,12 @@ const saveEditedMessage = () => {
   // Here you can add logic to save the edited message
   // For now, we'll just show a toast notification
   showToast("Pesan Disimpan", "Pesan yang diedit telah disimpan.");
+};
+
+const saveEditedTranslation = () => {
+  // Here you can add logic to save the edited translation
+  // For now, we'll just show a toast notification
+  showToast("Terjemahan Disimpan", "Terjemahan yang diedit telah disimpan.");
 };
 
 const resetForm = () => {
@@ -963,16 +974,28 @@ onUnmounted(() => {
          <!-- Terjemahan dalam Bahasa Indonesia -->
          <div v-if="translationMessage" class="space-y-4 p-6 bg-blue-50 border border-blue-200 rounded-lg">
            <div class="flex items-center justify-between">
-             <h5 class="font-medium text-blue-900">Terjemahan dalam Bahasa Indonesia</h5>
-             <button @click="copyTranslationToClipboard" class="flex items-center gap-2 px-3 py-1.5 border border-blue-300 rounded-md text-sm hover:bg-blue-100 text-blue-700">
-               <Copy class="h-4 w-4" /> Salin Terjemahan
-             </button>
+             <h5 class="font-medium text-blue-900">Terjemahan dalam Bahasa Indonesia - Dapat Diedit</h5>
+             <div class="flex gap-2">
+               <button @click="saveEditedTranslation" class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
+                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                 </svg>
+                 Simpan
+               </button>
+               <button @click="copyTranslationToClipboard" class="flex items-center gap-2 px-3 py-1.5 border border-blue-300 rounded-md text-sm hover:bg-blue-100 text-blue-700">
+                 <Copy class="h-4 w-4" /> Salin Terjemahan
+               </button>
+             </div>
            </div>
-           <div class="p-4 border border-blue-200 rounded-md bg-white">
-             <p class="text-sm leading-relaxed text-gray-800">{{ translationMessage }}</p>
-           </div>
+           <textarea 
+             ref="translationTextareaRef"
+             v-model="translationMessage" 
+             class="w-full p-4 border border-blue-200 rounded-md bg-white text-sm leading-relaxed text-gray-800 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+             rows="4"
+             placeholder="Terjemahan akan muncul di sini..."
+           ></textarea>
            <p class="text-xs text-blue-600">
-             📝 Terjemahan otomatis dalam bahasa Indonesia untuk memudahkan pemahaman.
+             📝 Anda dapat mengedit terjemahan di atas sesuai kebutuhan, kemudian klik "Simpan" untuk menyimpan perubahan.
            </p>
          </div>
 

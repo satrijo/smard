@@ -247,7 +247,7 @@ const closeCancellationModal = () => {
 };
 
 // Fungsi untuk konfirmasi pembatalan
-const confirmCancellation = async (id) => {
+const confirmCancellation = async (data) => {
   try {
     showToast("Memproses Pembatalan", "Sedang memproses pembatalan peringatan...", 'info');
     
@@ -264,7 +264,15 @@ const confirmCancellation = async (id) => {
       };
     }
     
-    const response = await fetch(`/aerodrome/warnings/${id}/cancel`, {
+    // Tambahkan data yang diedit jika ada
+    if (data.editedMessage) {
+      forecasterData.edited_message = data.editedMessage;
+    }
+    if (data.editedTranslation) {
+      forecasterData.edited_translation = data.editedTranslation;
+    }
+    
+    const response = await fetch(`/aerodrome/warnings/${data.id}/cancel`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
