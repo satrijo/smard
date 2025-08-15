@@ -24,40 +24,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy composer files first
-COPY composer.json composer.lock ./
+# Salin file proyek Laravel ke dalam container
+COPY . /var/www
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts
-
-# Copy package files
-COPY package*.json ./
-
-# Install Node.js dependencies
-RUN npm ci --only=production
-
-# Copy application code
-COPY . .
-
-# Build assets
-RUN npm run build
-
-# Create necessary directories
-RUN mkdir -p storage/framework/{cache,sessions,views} \
-    && mkdir -p storage/logs \
-    && mkdir -p bootstrap/cache
-
-# Set proper permissions
+# Ganti kepemilikan file
 RUN chown -R www-data:www-data /var/www
-
-# Create .env file if not exists
-RUN if [ ! -f .env ]; then cp env.example .env; fi
-
-# Generate application key
-RUN php artisan key:generate --no-interaction
 
 # Expose port 9000 untuk PHP-FPM
 EXPOSE 9000
 
-# Start PHP-FPM
+# Proses utama container tetap PHP-FPM
 CMD ["php-fpm"]
