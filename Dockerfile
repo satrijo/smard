@@ -12,9 +12,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libpq-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_pgsql \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_pgsql
 
 # Install Node.js v22 dan npm
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
@@ -50,9 +48,7 @@ RUN mkdir -p storage/framework/{cache,sessions,views} \
     && mkdir -p bootstrap/cache
 
 # Set proper permissions
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 755 storage \
-    && chmod -R 755 bootstrap/cache
+RUN chown -R www-data:www-data /var/www
 
 # Create .env file if not exists
 RUN if [ ! -f .env ]; then cp env.example .env; fi
@@ -60,11 +56,8 @@ RUN if [ ! -f .env ]; then cp env.example .env; fi
 # Generate application key
 RUN php artisan key:generate --no-interaction
 
-# Copy PHP-FPM configuration
-COPY docker/php-fpm.conf /usr/local/etc/php-fpm.conf
-
 # Expose port 9000 untuk PHP-FPM
 EXPOSE 9000
 
-# Start PHP-FPM with custom configuration
-CMD ["php-fpm", "-F", "-c", "/usr/local/etc/php-fpm.conf"]
+# Start PHP-FPM
+CMD ["php-fpm"]
