@@ -1,4 +1,4 @@
-192.168.10.54 {
+192.168.10.54:80 {
     root * /var/www/public
 
     # Aktifkan kompresi
