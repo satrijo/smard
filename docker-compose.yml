@@ -15,8 +15,6 @@ services:
       - DB_DATABASE=smard_db
       - DB_USERNAME=smard_user
       - DB_PASSWORD=smard_password
-      - APP_ENV=production
-      - APP_DEBUG=false
       - APP_URL=http://192.168.10.54
     depends_on:
       - postgres
