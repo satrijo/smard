@@ -33,14 +33,11 @@ COPY package*.json ./
 # Install Node.js dependencies
 RUN npm ci --only=production
 
-# Copy composer files
-COPY composer.* ./
-
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
-
-# Copy application code
+# Copy application code first
 COPY . .
+
+# Install PHP dependencies (after copying artisan)
+RUN composer install --no-dev --optimize-autoloader
 
 # Build assets
 RUN npm run build
