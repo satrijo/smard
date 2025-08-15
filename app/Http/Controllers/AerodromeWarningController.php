@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use App\Models\AerodromeWarning;
+use App\Services\WhatsAppService;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class AerodromeWarningController extends Controller
@@ -86,6 +88,15 @@ class AerodromeWarningController extends Controller
                 'forecaster_nip' => $validated['forecaster_nip'],
                 'status' => 'ACTIVE',
             ]);
+
+            // Kirim pesan WhatsApp
+            try {
+                $whatsappService = new WhatsAppService();
+                $whatsappService->sendAerodromeWarning($warning);
+            } catch (\Exception $e) {
+                // Log error tapi jangan gagalkan proses utama
+                Log::error('Failed to send WhatsApp message for warning: ' . $e->getMessage());
+            }
 
             return back()->with('success', 'Peringatan berhasil diterbitkan');
 
@@ -189,6 +200,15 @@ class AerodromeWarningController extends Controller
             
             // Update status peringatan yang dibatalkan menjadi CANCELLED (TIDAK MENGUBAH SANDI)
             $warning->update(['status' => 'CANCELLED']);
+
+            // Kirim pesan WhatsApp untuk pembatalan
+            try {
+                $whatsappService = new WhatsAppService();
+                $whatsappService->sendCancellationMessage($cancellationWarning, $warning);
+            } catch (\Exception $e) {
+                // Log error tapi jangan gagalkan proses utama
+                Log::error('Failed to send WhatsApp cancellation message: ' . $e->getMessage());
+            }
 
             // Jika request dari AJAX/Inertia, kembalikan JSON
             if (request()->expectsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
