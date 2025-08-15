@@ -37,7 +37,7 @@ RUN npm ci --only=production
 COPY . .
 
 # Install PHP dependencies (after copying artisan)
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Build assets
 RUN npm run build
