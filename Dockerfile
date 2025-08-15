@@ -27,17 +27,20 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy package files first for better caching
+# Copy composer files first
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+# Copy package files
 COPY package*.json ./
 
 # Install Node.js dependencies
 RUN npm ci --only=production
 
-# Copy application code first
+# Copy application code
 COPY . .
-
-# Install PHP dependencies (after copying artisan)
-RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Build assets
 RUN npm run build
@@ -47,7 +50,7 @@ RUN mkdir -p storage/framework/{cache,sessions,views} \
     && mkdir -p storage/logs \
     && mkdir -p bootstrap/cache
 
-# Set proper permissions (optimized - only necessary directories)
+# Set proper permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 755 storage \
     && chmod -R 755 bootstrap/cache

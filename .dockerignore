@@ -1,7 +1,6 @@
 # Dependencies
 node_modules
 npm-debug.log
-vendor
 
 # Git
 .git
@@ -13,7 +12,6 @@ README.md
 
 # Environment files
 .env
-.env.example
 .env.local
 .env.production
 .env.testing
