@@ -65,6 +65,12 @@ class AerodromeWarningController extends Controller
                     case 'CUSTOM':
                         if (isset($phenomenon['customDescription'])) $formatted['details']['customDescription'] = $phenomenon['customDescription'];
                         break;
+                    
+                    case 'TOX CHEM':
+                        if (isset($phenomenon['toxChemDescription']) && !empty(trim($phenomenon['toxChemDescription']))) {
+                            $formatted['details']['toxChemDescription'] = $phenomenon['toxChemDescription'];
+                        }
+                        break;
                 }
 
                 return $formatted;
@@ -460,20 +466,21 @@ class AerodromeWarningController extends Controller
                 ->pluck('forecaster_name')
                 ->filter()
                 ->values(),
-            'phenomena' => [
-                'TS' => 'Badai Guntur (TS)',
-                'GR' => 'Hujan Es (GR)',
-                'HVY RA' => 'Hujan Lebat (HVY RA)',
-                'TSRA' => 'Badai Guntur dengan Hujan (TSRA)',
-                'HVY TSRA' => 'Badai Guntur dengan Hujan Lebat (HVY TSRA)',
-                'SFC WSPD' => 'Angin Kencang Tanpa Arah (SFC WSPD)',
-                'SFC WIND' => 'Angin Kencang Dengan Arah (SFC WIND)',
-                'VIS' => 'Jarak Pandang Rendah (VIS)',
-                'SQ' => 'Squall (SQ)',
-                'VA' => 'Abu Vulkanik (VA)',
-                'TSUNAMI' => 'Tsunami',
-                'CUSTOM' => 'Lainnya (Free Text)'
-            ]
+                         'phenomena' => [
+                 'TS' => 'Badai Guntur (TS)',
+                 'GR' => 'Hujan Es (GR)',
+                 'HVY RA' => 'Hujan Lebat (HVY RA)',
+                 'TSRA' => 'Badai Guntur dengan Hujan (TSRA)',
+                 'HVY TSRA' => 'Badai Guntur dengan Hujan Lebat (HVY TSRA)',
+                 'SFC WSPD' => 'Angin Kencang Tanpa Arah (SFC WSPD)',
+                 'SFC WIND' => 'Angin Kencang Dengan Arah (SFC WIND)',
+                 'VIS' => 'Jarak Pandang Rendah (VIS)',
+                 'SQ' => 'Squall (SQ)',
+                 'VA' => 'Abu Vulkanik (VA)',
+                 'TOX CHEM' => 'Bahan Kimia Beracun (TOX CHEM)',
+                 'TSUNAMI' => 'Tsunami',
+                 'CUSTOM' => 'Lainnya (Free Text)'
+             ]
         ];
 
         return Inertia::render('aerodrome/AllWarnings', [
@@ -689,6 +696,7 @@ class AerodromeWarningController extends Controller
             'VIS' => 'Jarak Pandang Rendah (VIS)',
             'SQ' => 'Squall (SQ)',
             'VA' => 'Abu Vulkanik (VA)',
+            'TOX CHEM' => 'Bahan Kimia Beracun (TOX CHEM)',
             'TSUNAMI' => 'Tsunami',
             'CUSTOM' => 'Lainnya (Free Text)'
         ];

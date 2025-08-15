@@ -36,6 +36,7 @@ class AerodromeController extends Controller
             ['code' => 'VIS', 'name' => 'Jarak Pandang Rendah (VIS)'],
             ['code' => 'SQ', 'name' => 'Squall (SQ)'],
             ['code' => 'VA', 'name' => 'Abu Vulkanik (VA)'],
+            ['code' => 'TOX CHEM', 'name' => 'Bahan Kimia Beracun (TOX CHEM)'],
             ['code' => 'TSUNAMI', 'name' => 'Tsunami'],
             ['code' => 'CUSTOM', 'name' => 'Lainnya (Free Text)']
         ];
@@ -102,6 +103,7 @@ class AerodromeController extends Controller
             'VIS' => 'Jarak Pandang Rendah (VIS)',
             'SQ' => 'Squall (SQ)',
             'VA' => 'Abu Vulkanik (VA)',
+            'TOX CHEM' => 'Bahan Kimia Beracun (TOX CHEM)',
             'TSUNAMI' => 'Tsunami',
             'CUSTOM' => 'Lainnya (Free Text)'
         ];

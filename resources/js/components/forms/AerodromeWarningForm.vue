@@ -44,6 +44,7 @@ const phenomena = [
   { code: "VIS", name: "Jarak Pandang Rendah (VIS)" },
   { code: "SQ", name: "Squall (SQ)" },
   { code: "VA", name: "Abu Vulkanik (VA)" },
+  { code: "TOX CHEM", name: "Bahan Kimia Beracun (TOX CHEM)" },
   { code: "TSUNAMI", name: "Tsunami" },
   { code: "CUSTOM", name: "Lainnya (Free Text)" }
 ];
@@ -228,7 +229,8 @@ const addPhenomenon = () => {
     visibility: '',
     visibilityCause: '',
     customDescription: '',
-    cycloneName: ''
+    cycloneName: '',
+    toxChemDescription: ''
   };
 
   formData.phenomena.push(newPhenomenon);
@@ -295,6 +297,9 @@ const generatePhenomenaString = () => {
       case "TC": 
         const tc = p.cycloneName ? `TC ${p.cycloneName}` : p.type;
         return tc;
+      case "TOX CHEM": 
+        const toxChem = p.toxChemDescription && p.toxChemDescription.trim() ? `TOX CHEM ${p.toxChemDescription}` : p.type;
+        return toxChem;
       case "CUSTOM": 
         const custom = p.customDescription ? p.customDescription : p.type;
         return custom;
@@ -377,6 +382,11 @@ const generateIndonesianTranslation = () => {
           return "SQUALL";
         case "VA":
           return "ABU VULKANIK";
+        case "TOX CHEM":
+          if (p.toxChemDescription && p.toxChemDescription.trim()) {
+            return `BAHAN KIMIA BERACUN ${p.toxChemDescription}`;
+          }
+          return "BAHAN KIMIA BERACUN";
         case "TSUNAMI":
           return "TSUNAMI";
         case "CUSTOM":
@@ -491,6 +501,8 @@ const generatePreview = () => {
       return;
     }
   }
+
+
   
   let preview = `${formData.airportCode} AD WRNG ${formData.warningNumber.split(' ')[2]} VALID ${startFormatted}/${endFormatted} ${phenomenaString}`;
 
@@ -845,6 +857,10 @@ onUnmounted(() => {
               <div v-if="p.type === 'CUSTOM'">
                  <input v-model="p.customDescription" type="text" placeholder="Deskripsi fenomena" class="w-full p-2 border rounded-md" maxlength="32" />
                  <p class="text-xs text-muted-foreground mt-1">* Wajib diisi</p>
+              </div>
+              <div v-if="p.type === 'TOX CHEM'">
+                 <input v-model="p.toxChemDescription" type="text" placeholder="Deskripsi bahan kimia beracun (opsional)" class="w-full p-2 border rounded-md" maxlength="32" />
+                 <p class="text-xs text-muted-foreground mt-1">Opsional</p>
               </div>
               <p v-if='!["SFC WSPD", "SFC WIND", "VIS", "CUSTOM"].includes(p.type)' class="text-xs text-muted-foreground italic">
                 Tidak ada detail tambahan yang diperlukan.

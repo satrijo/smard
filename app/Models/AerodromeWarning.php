@@ -165,6 +165,12 @@ class AerodromeWarning extends Model
                     }
                     return $type;
                 
+                case 'TOX CHEM':
+                    if ($details && isset($details['toxChemDescription']) && !empty(trim($details['toxChemDescription']))) {
+                        return "TOX CHEM {$details['toxChemDescription']}";
+                    }
+                    return $type;
+                
                 default:
                     return $type;
             }
@@ -335,6 +341,11 @@ class AerodromeWarning extends Model
                         return "SQUALL";
                     case "VA":
                         return "ABU VULKANIK";
+                    case "TOX CHEM":
+                        if (isset($details['toxChemDescription']) && !empty(trim($details['toxChemDescription']))) {
+                            return "BAHAN KIMIA BERACUN {$details['toxChemDescription']}";
+                        }
+                        return "BAHAN KIMIA BERACUN";
                     case "TSUNAMI":
                         return "TSUNAMI";
                     case "CUSTOM":
