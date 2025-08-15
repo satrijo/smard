@@ -52,6 +52,10 @@ docker compose exec app php artisan migrate --force
 echo "🌱 Running database seeders..."
 docker compose exec app php artisan db:seed --force
 
+# Update forecaster data if needed
+echo "👥 Updating forecaster data..."
+docker compose exec app php update_forecasters.php
+
 echo "✅ Deployment completed!"
 echo "🌐 Your application is now available at: http://192.168.10.54"
 echo "📊 PostgreSQL is available at: localhost:5432"

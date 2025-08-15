@@ -82,6 +82,10 @@ fi
 # echo "🌱 Running database seeders..."
 # docker compose exec app php artisan db:seed --force
 
+# Update forecaster data if needed
+echo "👥 Updating forecaster data..."
+docker compose exec app php update_forecasters.php
+
 # Optimize for production
 echo "⚡ Optimizing for production..."
 docker compose exec app php artisan config:cache

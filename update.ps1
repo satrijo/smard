@@ -96,6 +96,10 @@ if ($migrationStatus -match "No migrations") {
 # Write-Host "🌱 Running database seeders..." -ForegroundColor Yellow
 # docker-compose exec app php artisan db:seed --force
 
+# Update forecaster data if needed
+Write-Host "👥 Updating forecaster data..." -ForegroundColor Yellow
+docker-compose exec app php update_forecasters.php
+
 # Optimize for production
 Write-Host "⚡ Optimizing for production..." -ForegroundColor Yellow
 docker-compose exec app php artisan config:cache

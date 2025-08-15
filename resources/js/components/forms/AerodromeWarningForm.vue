@@ -58,11 +58,21 @@ const visibilityCauses = [
 
 // Data forecaster yang tersedia
 const forecasters = [
-  { id: 1, name: "Ahmad Fauzi", nip: "198501012010011001" },
-  { id: 2, name: "Siti Nurhaliza", nip: "198602152010012002" },
-  { id: 3, name: "Budi Santoso", nip: "198703202010011003" },
-  { id: 4, name: "Dewi Sartika", nip: "198804102010012004" },
-  { id: 5, name: "Rudi Hermawan", nip: "198905152010011005" },
+  { id: 1, name: "Nurfaijin, S.Si., M.Sc.", nip: "197111101997031001" },
+  { id: 2, name: "Sawardi, S.T", nip: "197109251992021001" },
+  { id: 3, name: "Suharti", nip: "197208181993012001" },
+  { id: 4, name: "Hakim Mubasyir, S.Kom", nip: "197812221998031001" },
+  { id: 5, name: "Agung Surono, SP", nip: "197912182000031001" },
+  { id: 6, name: "Deas Achmad Rivai, S. Kom, M. Si", nip: "198906022010121001" },
+  { id: 7, name: "Gaib Prawoto, A.Md", nip: "197507202009111001" },
+  { id: 8, name: "Rendi Krisnawan, A.Md", nip: "198612122008121001" },
+  { id: 9, name: "Adnan Dendy Mardika, S.Kom", nip: "198908192010121001" },
+  { id: 10, name: "Feriharti Nugrohowati, S.T", nip: "198909052010122001" },
+  { id: 11, name: "Desi Luqman Az Zahro, S.Kom", nip: "198912272012122001" },
+  { id: 12, name: "Nurmaya, S.Tr.Met.", nip: "199101012009112001" },
+  { id: 13, name: "Purwanggoro Sukipiadi, S.Kom", nip: "198311222012121001" },
+  { id: 14, name: "Khamim Sodik, S.Kom", nip: "198408072012121001" },
+  { id: 15, name: "Satriyo Unggul Wicaksono", nip: "199403122013121001" },
 ];
 
 // Gunakan `reactive` untuk state formulir yang kompleks.
