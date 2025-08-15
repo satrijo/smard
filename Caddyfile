@@ -1,7 +1,4 @@
 192.168.10.54:80 {
-    # Disable automatic HTTPS for local development
-    tls off
-    
     # Enable gzip compression
     encode gzip
 
