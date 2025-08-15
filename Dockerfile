@@ -61,10 +61,10 @@ RUN if [ ! -f .env ]; then cp env.example .env; fi
 RUN php artisan key:generate --no-interaction
 
 # Copy PHP-FPM configuration
-COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.conf
 
 # Expose port 9000 untuk PHP-FPM
 EXPOSE 9000
 
 # Start PHP-FPM with custom configuration
-CMD ["php-fpm", "-F"]
+CMD ["php-fpm", "-F", "-c", "/usr/local/etc/php-fpm.conf"]
