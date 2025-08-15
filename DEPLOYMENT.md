@@ -165,6 +165,18 @@ docker-compose exec -T postgres psql -U smard_user smard_db < backup_file.sql
 ```
 
 ### Update Application
+
+#### Automated Update (Recommended)
+```bash
+# Linux/macOS
+chmod +x update.sh
+./update.sh
+
+# Windows PowerShell
+.\update.ps1
+```
+
+#### Manual Update
 ```bash
 # Pull latest changes
 git pull origin main
