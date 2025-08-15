@@ -37,19 +37,20 @@ services:
       - smard_network
 
   caddy:
-    image: caddy:2-alpine
-    container_name: smard_caddy
+    image: caddy:latest
     restart: unless-stopped
+    container_name: smard_caddy
+    cap_add:
+      - NET_ADMIN
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./public:/var/www/public:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on:
-      - app
     networks:
       - smard_network
 
