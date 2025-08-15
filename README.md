@@ -69,65 +69,88 @@ Sistem peringatan aerodrome untuk Stasiun Meteorologi Tunggul Wulung yang memung
 
 ## 🚀 Instalasi
 
-### 1. Clone Repository
+### Opsi 1: Docker Deployment (Recommended)
+
+#### Prerequisites
+- Docker dan Docker Compose terinstall
+- Git
+
+#### Quick Start
 ```bash
+# Clone repository
 git clone <repository-url>
 cd smard
+
+# Jalankan script deployment
+chmod +x deploy.sh
+./deploy.sh
 ```
 
-### 2. Install Dependencies
+#### Manual Docker Setup
 ```bash
-# Install PHP dependencies
-composer install
+# 1. Clone repository
+git clone <repository-url>
+cd smard
 
-# Install Node.js dependencies
-npm install
-```
-
-### 3. Setup Environment
-```bash
-# Copy environment file
+# 2. Setup environment
 cp .env.example .env
 
-# Generate application key
-php artisan key:generate
+# 3. Build dan start containers
+docker-compose up -d --build
+
+# 4. Setup Laravel (dalam container)
+docker-compose exec app php artisan key:generate
+docker-compose exec app php artisan migrate --force
+docker-compose exec app php artisan db:seed --force
 ```
 
-### 4. Konfigurasi Database
-Edit file `.env` dan sesuaikan konfigurasi database:
-```env
-DB_CONNECTION=mysql
+#### Akses Aplikasi
+- **Web Application**: http://192.168.10.54
+- **PostgreSQL**: localhost:5432
+- **Database**: smard_db
+- **Username**: smard_user
+- **Password**: smard_password
+
+### Opsi 2: Local Development
+
+#### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- PostgreSQL 15+
+
+#### Setup Manual
+```bash
+# 1. Clone repository
+git clone <repository-url>
+cd smard
+
+# 2. Install dependencies
+composer install
+npm install
+
+# 3. Setup environment
+cp .env.example .env
+
+# 4. Konfigurasi database PostgreSQL
+# Edit .env file:
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
+DB_PORT=5432
 DB_DATABASE=smard_db
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
-```
 
-### 5. Migrasi Database
-```bash
-# Run migrations
+# 5. Setup Laravel
+php artisan key:generate
 php artisan migrate
-
-# Seed database dengan data awal
 php artisan db:seed
-```
 
-### 6. Build Assets
-```bash
-# Development
-npm run dev
-
-# Production
+# 6. Build assets
 npm run build
-```
 
-### 7. Start Server
-```bash
-# Development server
+# 7. Start server
 php artisan serve
-
-# Queue worker (untuk background jobs)
 php artisan queue:work
 ```
 

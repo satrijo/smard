@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     build:
@@ -7,9 +9,62 @@ services:
     working_dir: /var/www
     volumes:
       - ./:/var/www
+      - ./storage:/var/www/storage
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=smard_db
+      - DB_USERNAME=smard_user
+      - DB_PASSWORD=smard_password
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=http://192.168.10.54
+    depends_on:
+      - postgres
     networks:
+      - smard_network
       - integrate
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: smard_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=smard_db
+      - POSTGRES_USER=smard_user
+      - POSTGRES_PASSWORD=smard_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - smard_network
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: smard_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./public:/var/www/public:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - smard_network
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
 networks:
+  smard_network:
+    driver: bridge
   integrate:
     external: true

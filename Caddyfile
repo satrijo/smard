@@ -1,0 +1,33 @@
+192.168.10.54 {
+    # Enable gzip compression
+    encode gzip
+
+    # Serve static files directly
+    @static {
+        file
+        path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot
+    }
+    handle @static {
+        root * /var/www/public
+        file_server
+    }
+
+    # Handle PHP files
+    @php {
+        path *.php
+    }
+    handle @php {
+        reverse_proxy app:9000
+    }
+
+    # Handle all other requests (Laravel routes)
+    handle {
+        reverse_proxy app:9000
+    }
+
+    # Log configuration
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}
