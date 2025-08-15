@@ -1,15 +1,28 @@
+# Dependencies
 node_modules
 npm-debug.log
+vendor
+
+# Git
 .git
 .gitignore
+
+# Documentation
 README.md
+*.md
+
+# Environment files
 .env
 .env.example
 .env.local
 .env.production
 .env.testing
+
+# IDE
 .idea
 .vscode
+
+# Logs
 *.log
 storage/logs/*
 storage/framework/cache/*
@@ -17,9 +30,20 @@ storage/framework/sessions/*
 storage/framework/views/*
 storage/app/*
 !storage/app/public
+
+# Tests
 tests
 phpunit.xml
+
+# Docker files
 docker-compose.yml
 Dockerfile
 .dockerignore
 deploy.sh
+update.sh
+update.ps1
+update_forecasters.php
+
+# OS files
+.DS_Store
+Thumbs.db
