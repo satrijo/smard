@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libpq-dev \
-    supervisor \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_pgsql \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -64,8 +63,5 @@ RUN php artisan key:generate --no-interaction
 # Expose port 9000 untuk PHP-FPM
 EXPOSE 9000
 
-# Copy supervisor configuration
-COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start PHP-FPM directly
+CMD ["php-fpm"]
