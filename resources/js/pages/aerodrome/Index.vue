@@ -308,6 +308,14 @@ const handleWarningPublished = () => {
   refreshData();
 };
 
+// Format waktu lokal (24 jam)
+const formatTime = (date) => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+};
+
 // Format UTC time to Indonesian format (DD/MM/YYYY HH:mm UTC)
 const formatUTCTime = (dateTime) => {
   // Handle null, undefined, or invalid date
@@ -375,7 +383,7 @@ onUnmounted(() => {
         <p class="font-bold text-sm">{{ toast.title }}</p>
         <p class="text-xs opacity-80 mt-1">{{ toast.description }}</p>
         <div class="text-xs opacity-60 mt-2">
-          {{ new Date().toLocaleTimeString('id-ID') }}
+          {{ formatTime(new Date()) }}
         </div>
       </div>
     </div>
@@ -444,7 +452,7 @@ onUnmounted(() => {
                <div v-if="realTimeState.lastUpdate" class="mt-3 pt-2 border-t border-border">
                  <div class="flex items-center justify-between text-xs text-muted-foreground">
                    <span>Update terakhir:</span>
-                   <span>{{ new Date(realTimeState.lastUpdate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' }) }} UTC</span>
+                   <span>{{ formatUTCTime(new Date(realTimeState.lastUpdate)) }}</span>
                  </div>
                 <div class="flex items-center gap-1 text-xs text-muted-foreground">
                   <div class="w-2 h-2 rounded-full" :class="{

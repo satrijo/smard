@@ -956,7 +956,7 @@ onUnmounted(() => {
 
                  <div v-if="previewMessage" class="space-y-4 p-6 bg-secondary/30 rounded-lg border">
            <div class="flex items-center justify-between">
-             <h5 class="font-medium">Pratinjau Pesan Baku (UTC) - Dapat Diedit</h5>
+             <h5 class="font-medium">Pratinjau</h5>
              <div class="flex gap-2">
                <button @click="saveEditedMessage" class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90">
                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -984,7 +984,7 @@ onUnmounted(() => {
          <!-- Terjemahan dalam Bahasa Indonesia -->
          <div v-if="translationMessage" class="space-y-4 p-6 bg-blue-50 border border-blue-200 rounded-lg">
            <div class="flex items-center justify-between">
-             <h5 class="font-medium text-blue-900">Terjemahan dalam Bahasa Indonesia - Dapat Diedit</h5>
+             <h5 class="font-medium text-blue-900">Terjemahan</h5>
              <div class="flex gap-2">
                <button @click="saveEditedTranslation" class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

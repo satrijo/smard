@@ -306,7 +306,7 @@ onUnmounted(() => {
             <!-- Sandi Pembatalan -->
             <div class="relative">
               <div class="flex items-center justify-between mb-2">
-                <h5 class="font-medium">Pesan Pembatalan - Dapat Diedit:</h5>
+                <h5 class="font-medium">Pembatalan:</h5>
                 <button @click="saveEditedCancellationMessage" class="flex items-center gap-1 px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700">
                   <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
@@ -331,7 +331,7 @@ onUnmounted(() => {
             <!-- Terjemahan Bahasa Indonesia -->
             <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg">
               <div class="flex items-center justify-between mb-2">
-                <h5 class="font-medium text-blue-900">Terjemahan dalam Bahasa Indonesia - Dapat Diedit:</h5>
+                <h5 class="font-medium text-blue-900">Terjemahan:</h5>
                 <button @click="saveEditedCancellationTranslation" class="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
                   <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>

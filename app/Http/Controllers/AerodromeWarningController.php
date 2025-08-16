@@ -618,7 +618,7 @@ class AerodromeWarningController extends Controller
      */
     private function generateDynamicTitle($filters, $count)
     {
-        $titleParts = ['LAPORAN PERINGATAN AERODROME WARNING'];
+        $titleParts = ['LAPORAN AERODROME WARNING'];
         
         // Add status-specific title
         if (!empty($filters['status']) && $filters['status'] !== 'all') {

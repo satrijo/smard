@@ -32,23 +32,20 @@ const handleScroll = () => {
   isScrolled.value = window.scrollY > 10;
 };
 
-// Format waktu Indonesia
+// Format waktu Indonesia (24 jam)
 const formatTime = (date) => {
-  return date.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
 };
 
-// Format waktu UTC
+// Format waktu UTC (24 jam)
 const formatUTCTime = (date) => {
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZone: 'UTC'
-  }) + ' UTC';
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds} UTC`;
 };
 
 const formatDate = (date) => {
