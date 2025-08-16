@@ -100,6 +100,13 @@ const translationTextareaRef = ref(null); // Add ref for translation textarea
 // State untuk forecaster yang dipilih
 const selectedForecaster = ref(null);
 
+// State untuk loading/processing
+const isPublishing = ref(false);
+const isGeneratingPreview = ref(false);
+const isSavingMessage = ref(false);
+const isSavingTranslation = ref(false);
+const isResettingSequence = ref(false);
+
 // Inisialisasi forecaster dari localStorage saat komponen dimount
 const initializeForecaster = () => {
   const savedForecaster = localStorage.getItem('selectedForecaster');
@@ -461,10 +468,14 @@ const generateIndonesianTranslation = () => {
 };
 
 const generatePreview = () => {
+  if (isGeneratingPreview.value) return; // Prevent double click
+  
   if (!selectedForecaster.value) {
     showToast("Forecaster Belum Dipilih", "Mohon pilih forecaster terlebih dahulu.", "destructive");
     return;
   }
+  
+  isGeneratingPreview.value = true;
   
   if (!formData.airportCode || !formData.warningNumber || !formData.startTime ||
       !formData.endTime || formData.phenomena.length === 0 || !formData.source || !formData.intensity) {
@@ -556,6 +567,9 @@ const generatePreview = () => {
       translationTextareaRef.value.focus();
     }
   }, 100);
+  
+  // Reset loading state
+  isGeneratingPreview.value = false;
 };
 
 const copyToClipboard = () => {
@@ -569,15 +583,57 @@ const copyTranslationToClipboard = () => {
 };
 
 const saveEditedMessage = () => {
+  if (isSavingMessage.value) return; // Prevent double click
+  
+  isSavingMessage.value = true;
+  
   // Here you can add logic to save the edited message
   // For now, we'll just show a toast notification
-  showToast("Pesan Disimpan", "Pesan yang diedit telah disimpan.");
+  setTimeout(() => {
+    showToast("Pesan Disimpan", "Pesan yang diedit telah disimpan.");
+    isSavingMessage.value = false;
+  }, 500);
 };
 
 const saveEditedTranslation = () => {
+  if (isSavingTranslation.value) return; // Prevent double click
+  
+  isSavingTranslation.value = true;
+  
   // Here you can add logic to save the edited translation
   // For now, we'll just show a toast notification
-  showToast("Terjemahan Disimpan", "Terjemahan yang diedit telah disimpan.");
+  setTimeout(() => {
+    showToast("Terjemahan Disimpan", "Terjemahan yang diedit telah disimpan.");
+    isSavingTranslation.value = false;
+  }, 500);
+};
+
+const resetSequenceNumber = async () => {
+  if (isResettingSequence.value) return; // Prevent double click
+  
+  isResettingSequence.value = true;
+  
+  try {
+    const response = await fetch('/aerodrome/warnings/reset-sequence', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      }
+    });
+    
+    if (response.ok) {
+      showToast("Sequence Reset", "Nomor sequence berhasil direset ke 1.");
+      await fetchNextSequenceNumber(); // Refresh sequence number
+    } else {
+      showToast("Error", "Gagal mereset sequence number.", "destructive");
+    }
+  } catch (error) {
+    console.error('Error resetting sequence number:', error);
+    showToast("Error", "Gagal mereset sequence number.", "destructive");
+  } finally {
+    isResettingSequence.value = false;
+  }
 };
 
 const resetForm = () => {
@@ -596,6 +652,13 @@ const resetForm = () => {
    previewMessage.value = "";
    translationMessage.value = "";
    isDraftCreated.value = false;
+   
+   // Reset loading states
+   isGeneratingPreview.value = false;
+   isPublishing.value = false;
+   isSavingMessage.value = false;
+   isSavingTranslation.value = false;
+   isResettingSequence.value = false;
    
    // Ambil sequence number terbaru setelah reset
    fetchNextSequenceNumber();
@@ -624,10 +687,14 @@ const setCurrentObservationTime = () => {
 };
 
 const publishWarning = () => {
+  if (isPublishing.value) return; // Prevent double click
+  
   if (!selectedForecaster.value) {
     showToast("Forecaster Belum Dipilih", "Mohon pilih forecaster terlebih dahulu.", "destructive");
     return;
   }
+  
+  isPublishing.value = true;
   
   // Di aplikasi Inertia, Anda akan mengirim data ke backend di sini.
   router.post('/aerodrome/warnings', {
@@ -637,6 +704,10 @@ const publishWarning = () => {
     forecaster_id: selectedForecaster.value.id,
     forecaster_name: selectedForecaster.value.name,
     forecaster_nip: selectedForecaster.value.nip
+  }, {
+    onFinish: () => {
+      isPublishing.value = false;
+    }
   });
 };
 
@@ -654,6 +725,10 @@ watch(() => props.flash, (flash) => {
   }
   if (flash.error) {
     showToast("Gagal", flash.error, "destructive");
+    // Reset loading states on error
+    isPublishing.value = false;
+    isGeneratingPreview.value = false;
+    isResettingSequence.value = false;
   }
 }, { immediate: true });
 
@@ -775,16 +850,31 @@ onUnmounted(() => {
                </span>
              </label>
              <input v-model="formData.warningNumber" id="warningNumber" type="text" readonly class="w-full mt-1 p-2 border rounded-md bg-muted/50 cursor-not-allowed" placeholder="Otomatis terisi..." />
-             <p class="text-xs text-muted-foreground">
-               🔄 Nomor akan otomatis diperbarui setiap 30 detik dan reset di 00:00 UTC
-             </p>
+             <div class="flex items-center justify-between">
+               <p class="text-xs text-muted-foreground">
+                 🔄 Nomor akan otomatis diperbarui setiap 30 detik dan reset di 00:00 UTC
+               </p>
+               <button 
+                 @click="resetSequenceNumber" 
+                 :disabled="isGeneratingPreview || isPublishing || isResettingSequence"
+                 class="px-2 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                 title="Reset sequence number ke 1"
+               >
+                 <svg v-if="isResettingSequence" class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                 </svg>
+                 {{ isResettingSequence ? 'Resetting...' : 'Reset Sequence' }}
+               </button>
+             </div>
            </div>
                      <!-- Periode Validitas -->
            <div class="space-y-2">
              <label class="text-sm font-medium">Periode Validitas (UTC) <span class="text-destructive">*</span><button 
                    @click="setCurrentUTCTime" 
                    type="button"
-                   class="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs ml-2"
+                   :disabled="isGeneratingPreview || isPublishing || isResettingSequence"
+                   class="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
                  >
                    UTC Now
                  </button></label>
@@ -826,7 +916,11 @@ onUnmounted(() => {
               </option>
             </select>
           </div>
-          <button @click="addPhenomenon" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+          <button 
+            @click="addPhenomenon" 
+            :disabled="isGeneratingPreview || isPublishing || isResettingSequence"
+            class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Plus class="h-4 w-4" /> Tambah
           </button>
         </div>
@@ -842,7 +936,11 @@ onUnmounted(() => {
             <div v-for="p in formData.phenomena" :key="p.id" class="p-4 bg-accent/20 rounded-lg border border-accent/40">
               <div class="flex items-center justify-between mb-3">
                 <h5 class="font-medium text-accent-foreground">{{ p.type }} - {{ getPhenomenonName(p.type) }}</h5>
-                <button @click="removePhenomenon(p.id)" class="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 rounded-md">
+                <button 
+                  @click="removePhenomenon(p.id)" 
+                  :disabled="isGeneratingPreview || isPublishing || isResettingSequence"
+                  class="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <X class="h-4 w-4 mx-auto" />
                 </button>
               </div>
@@ -942,7 +1040,8 @@ onUnmounted(() => {
                  v-if="formData.source === 'OBS'"
                  @click="setCurrentObservationTime"
                  type="button"
-                 class="mt-1 px-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs transition-colors"
+                 :disabled="isGeneratingPreview || isPublishing || isResettingSequence"
+                 class="mt-1 px-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                  title="Set waktu observasi ke UTC sekarang"
                >
                  UTC Now
@@ -960,21 +1059,41 @@ onUnmounted(() => {
       <!-- Area Aksi dan Pratinjau -->
       <div class="space-y-6">
         <h4 class="text-lg font-semibold text-foreground">3. Aksi dan Pratinjau</h4>
-        <button @click="generatePreview" class="w-full max-w-md px-4 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-lg">
-          Buat Draf Pesan
+        <button 
+          @click="generatePreview" 
+          :disabled="isGeneratingPreview || isResettingSequence"
+          class="w-full max-w-md px-4 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <svg v-if="isGeneratingPreview" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ isGeneratingPreview ? 'Membuat Draf...' : 'Buat Draf Pesan' }}
         </button>
 
                  <div v-if="previewMessage" class="space-y-4 p-6 bg-secondary/30 rounded-lg border">
            <div class="flex items-center justify-between">
              <h5 class="font-medium">Pratinjau</h5>
              <div class="flex gap-2">
-               <button @click="saveEditedMessage" class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90">
-                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <button 
+                 @click="saveEditedMessage" 
+                 :disabled="isSavingMessage || isResettingSequence"
+                 class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+               >
+                 <svg v-if="isSavingMessage" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                 </svg>
+                 <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                  </svg>
-                 Simpan
+                 {{ isSavingMessage ? 'Menyimpan...' : 'Simpan' }}
                </button>
-               <button @click="copyToClipboard" class="flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm hover:bg-muted">
+               <button 
+                 @click="copyToClipboard" 
+                 :disabled="isSavingMessage || isResettingSequence"
+                 class="flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+               >
                  <Copy class="h-4 w-4" /> Salin
                </button>
              </div>
@@ -996,13 +1115,25 @@ onUnmounted(() => {
            <div class="flex items-center justify-between">
              <h5 class="font-medium text-blue-900">Terjemahan</h5>
              <div class="flex gap-2">
-               <button @click="saveEditedTranslation" class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
-                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <button 
+                 @click="saveEditedTranslation" 
+                 :disabled="isSavingTranslation || isResettingSequence"
+                 class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+               >
+                 <svg v-if="isSavingTranslation" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                 </svg>
+                 <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                  </svg>
-                 Simpan
+                 {{ isSavingTranslation ? 'Menyimpan...' : 'Simpan' }}
                </button>
-               <button @click="copyTranslationToClipboard" class="flex items-center gap-2 px-3 py-1.5 border border-blue-300 rounded-md text-sm hover:bg-blue-100 text-blue-700">
+               <button 
+                 @click="copyTranslationToClipboard" 
+                 :disabled="isSavingTranslation || isResettingSequence"
+                 class="flex items-center gap-2 px-3 py-1.5 border border-blue-300 rounded-md text-sm hover:bg-blue-100 text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+               >
                  <Copy class="h-4 w-4" /> Salin Terjemahan
                </button>
              </div>
@@ -1020,10 +1151,22 @@ onUnmounted(() => {
          </div>
 
         <div v-if="isDraftCreated" class="flex flex-col sm:flex-row gap-4 pt-4">
-          <button @click="publishWarning" class="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md">
-            Terbitkan Peringatan
+          <button 
+            @click="publishWarning" 
+            :disabled="isPublishing || isResettingSequence"
+            class="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <svg v-if="isPublishing" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isPublishing ? 'Menerbitkan...' : 'Terbitkan Peringatan' }}
           </button>
-          <button @click="resetForm" class="flex-1 px-4 py-3 border rounded-md hover:bg-muted">
+          <button 
+            @click="resetForm" 
+            :disabled="isPublishing || isResettingSequence"
+            class="flex-1 px-4 py-3 border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Reset Formulir
           </button>
         </div>

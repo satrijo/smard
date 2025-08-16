@@ -17,6 +17,10 @@ const props = defineProps({
     type: Object, // Bisa null jika tidak ada record yang dipilih
     default: null,
   },
+  error: {
+    type: String,
+    default: null,
+  },
 });
 
 // 2. Mendefinisikan event yang akan di-emit ke komponen induk.
@@ -29,6 +33,11 @@ const activeForecaster = ref(null);
 // State untuk terjemahan yang dapat diedit
 const editableCancellationTranslation = ref('');
 const editableCancellationMessage = ref('');
+
+// State untuk loading/processing
+const isSavingCancellationMessage = ref(false);
+const isSavingCancellationTranslation = ref(false);
+const isConfirmingCancellation = ref(false);
 
 // State untuk notifikasi toast sederhana
 const toast = reactive({
@@ -144,21 +153,39 @@ const cancellationTranslation = computed(() => {
 // --- METHODS ---
 
 const copyMessage = () => {
-  const fullMessage = `${editableCancellationMessage.value}\n\n${editableCancellationTranslation.value}`;
-  navigator.clipboard.writeText(fullMessage);
-  showToast("Berhasil Disalin", "Pesan pembatalan lengkap telah disalin ke clipboard.");
+  navigator.clipboard.writeText(editableCancellationMessage.value);
+  showToast("Pesan Disalin", "Pesan pembatalan telah disalin ke clipboard.");
+};
+
+const copyTranslation = () => {
+  navigator.clipboard.writeText(editableCancellationTranslation.value);
+  showToast("Terjemahan Disalin", "Terjemahan pembatalan telah disalin ke clipboard.");
 };
 
 const saveEditedCancellationTranslation = () => {
+  if (isSavingCancellationTranslation.value) return; // Prevent double click
+  
+  isSavingCancellationTranslation.value = true;
+  
   // Here you can add logic to save the edited translation
   // For now, we'll just show a toast notification
-  showToast("Terjemahan Disimpan", "Terjemahan pembatalan yang diedit telah disimpan.");
+  setTimeout(() => {
+    showToast("Terjemahan Disimpan", "Terjemahan pembatalan yang diedit telah disimpan.");
+    isSavingCancellationTranslation.value = false;
+  }, 500);
 };
 
 const saveEditedCancellationMessage = () => {
+  if (isSavingCancellationMessage.value) return; // Prevent double click
+  
+  isSavingCancellationMessage.value = true;
+  
   // Here you can add logic to save the edited message
   // For now, we'll just show a toast notification
-  showToast("Pesan Disimpan", "Pesan pembatalan yang diedit telah disimpan.");
+  setTimeout(() => {
+    showToast("Pesan Disimpan", "Pesan pembatalan yang diedit telah disimpan.");
+    isSavingCancellationMessage.value = false;
+  }, 500);
 };
 
 // Fungsi helper ini bisa tetap sama.
@@ -175,17 +202,31 @@ const formatPhenomenonName = (phenomenon) => {
 };
 
 const handleConfirm = () => {
+  if (isConfirmingCancellation.value) return; // Prevent double click
+  
   if (props.warningRecord) {
+    isConfirmingCancellation.value = true;
+    
     // 4. Meng-emit event 'confirm' dengan membawa ID record, pesan dan terjemahan yang diedit.
     emit('confirm', {
       id: props.warningRecord.id,
       editedMessage: editableCancellationMessage.value,
       editedTranslation: editableCancellationTranslation.value
     });
+    
+    // Reset loading state after a timeout in case the parent doesn't handle it
+    setTimeout(() => {
+      isConfirmingCancellation.value = false;
+    }, 10000); // 10 seconds timeout
   }
 };
 
 const handleClose = () => {
+  // Reset loading states when closing
+  isSavingCancellationMessage.value = false;
+  isSavingCancellationTranslation.value = false;
+  isConfirmingCancellation.value = false;
+  
   // 5. Meng-emit event 'close' untuk memberi tahu induk agar menutup modal.
   emit('close');
 };
@@ -215,6 +256,22 @@ watch(() => cancellationTranslation.value, (newTranslation) => {
 // Watch untuk mengupdate editable message ketika cancellationMessage berubah
 watch(() => cancellationMessage.value, (newMessage) => {
   editableCancellationMessage.value = newMessage;
+});
+
+// Reset loading states when modal closes
+watch(() => props.isOpen, (isOpen) => {
+  if (!isOpen) {
+    isSavingCancellationMessage.value = false;
+    isSavingCancellationTranslation.value = false;
+    isConfirmingCancellation.value = false;
+  }
+});
+
+// Watch for error prop to reset loading states
+watch(() => props.error, (error) => {
+  if (error) {
+    isConfirmingCancellation.value = false;
+  }
 });
 
 onMounted(() => {
@@ -290,6 +347,17 @@ onUnmounted(() => {
           </div>
         </div>
         
+        <!-- Error Message -->
+        <div v-if="error" class="bg-red-50 border border-red-200 p-4 rounded-lg flex items-start gap-3">
+          <AlertTriangle class="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 class="font-semibold mb-1 text-red-800">ERROR</h4>
+            <p class="text-sm text-red-700">
+              {{ error }}
+            </p>
+          </div>
+        </div>
+
         <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3">
           <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
           <div>
@@ -307,11 +375,19 @@ onUnmounted(() => {
             <div class="relative">
               <div class="flex items-center justify-between mb-2">
                 <h5 class="font-medium">Pembatalan:</h5>
-                <button @click="saveEditedCancellationMessage" class="flex items-center gap-1 px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700">
-                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button 
+                  @click="saveEditedCancellationMessage" 
+                  :disabled="isSavingCancellationMessage"
+                  class="flex items-center gap-1 px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg v-if="isSavingCancellationMessage" class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <svg v-else class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                   </svg>
-                  Simpan
+                  {{ isSavingCancellationMessage ? 'Menyimpan...' : 'Simpan' }}
                 </button>
               </div>
               <textarea 
@@ -320,7 +396,11 @@ onUnmounted(() => {
                 rows="2"
                 placeholder="Pesan pembatalan akan muncul di sini..."
               ></textarea>
-              <button @click="copyMessage" class="absolute top-2 right-2 p-2 rounded-md hover:bg-background/80">
+              <button 
+                @click="copyMessage" 
+                :disabled="isSavingCancellationMessage"
+                class="absolute top-2 right-2 p-2 rounded-md hover:bg-background/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Copy class="h-4 w-4" />
               </button>
               <p class="text-xs text-gray-600 mt-1">
@@ -332,19 +412,36 @@ onUnmounted(() => {
             <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg">
               <div class="flex items-center justify-between mb-2">
                 <h5 class="font-medium text-blue-900">Terjemahan:</h5>
-                <button @click="saveEditedCancellationTranslation" class="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
-                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button 
+                  @click="saveEditedCancellationTranslation" 
+                  :disabled="isSavingCancellationTranslation"
+                  class="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg v-if="isSavingCancellationTranslation" class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <svg v-else class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                   </svg>
-                  Simpan
+                  {{ isSavingCancellationTranslation ? 'Menyimpan...' : 'Simpan' }}
                 </button>
               </div>
-              <textarea 
-                v-model="editableCancellationTranslation" 
-                class="w-full p-3 border border-blue-200 rounded-md bg-white text-sm text-blue-800 leading-relaxed resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows="3"
-                placeholder="Terjemahan akan muncul di sini..."
-              ></textarea>
+              <div class="relative">
+                <textarea 
+                  v-model="editableCancellationTranslation" 
+                  class="w-full p-3 border border-blue-200 rounded-md bg-white text-sm text-blue-800 leading-relaxed resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows="3"
+                  placeholder="Terjemahan akan muncul di sini..."
+                ></textarea>
+                <button 
+                  @click="copyTranslation" 
+                  :disabled="isSavingCancellationTranslation"
+                  class="absolute top-2 right-2 p-2 rounded-md hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Copy class="h-4 w-4" />
+                </button>
+              </div>
               <p class="text-xs text-blue-600 mt-1">
                 📝 Anda dapat mengedit terjemahan di atas sesuai kebutuhan, kemudian klik "Simpan".
               </p>
@@ -356,11 +453,23 @@ onUnmounted(() => {
       <!-- Footer -->
       <div class="flex justify-end gap-3 p-6 border-t">
         <!-- 8. Event handler di Vue menggunakan `@click`. -->
-        <button @click="handleClose" class="px-4 py-2 border rounded-md text-sm font-medium hover:bg-accent">
+        <button 
+          @click="handleClose" 
+          :disabled="isConfirmingCancellation"
+          class="px-4 py-2 border rounded-md text-sm font-medium hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Tutup
         </button>
-        <button @click="handleConfirm" class="px-4 py-2 bg-destructive text-destructive-foreground rounded-md text-sm font-medium hover:bg-destructive/90">
-          Ya, Batalkan Peringatan
+        <button 
+          @click="handleConfirm" 
+          :disabled="isConfirmingCancellation"
+          class="px-4 py-2 bg-destructive text-destructive-foreground rounded-md text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <svg v-if="isConfirmingCancellation" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ isConfirmingCancellation ? 'Membatalkan...' : 'Ya, Batalkan Peringatan' }}
         </button>
       </div>
     </div>
