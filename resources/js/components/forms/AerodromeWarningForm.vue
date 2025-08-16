@@ -263,6 +263,16 @@ const formatDateTime = (dateTimeString) => {
   return `${day}${hour}${minute}`;
 };
 
+// Fungsi khusus untuk format waktu observasi (tanpa tanggal)
+const formatObservationTime = (dateTimeString) => {
+  if (!dateTimeString) return "";
+  // Pastikan kita menggunakan UTC
+  const date = new Date(dateTimeString + 'Z'); // Tambahkan 'Z' untuk memastikan UTC
+  const hour = date.getUTCHours().toString().padStart(2, '0');
+  const minute = date.getUTCMinutes().toString().padStart(2, '0');
+  return `${hour}${minute}`;
+};
+
 // Helper untuk mendapatkan waktu UTC saat ini dalam format datetime-local
 const getCurrentUTCDatetime = () => {
   const now = new Date();
@@ -518,7 +528,7 @@ const generatePreview = () => {
   let preview = `${formData.airportCode} AD WRNG ${formData.warningNumber.split(' ')[2]} VALID ${startFormatted}/${endFormatted} ${phenomenaString}`;
 
   if (formData.source === "OBS" && formData.observationTime) {
-    const obsFormatted = formatDateTime(formData.observationTime);
+    const obsFormatted = formatObservationTime(formData.observationTime);
     preview += ` OBS AT ${obsFormatted}Z`;
   } else {
     preview += ` ${formData.source}`;
